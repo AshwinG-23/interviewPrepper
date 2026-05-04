@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  name      String?
+  role      String
+  field     String
+  company   String?
+  jobDesc   String?
+  duration  Int      @default(50)
+  createdAt DateTime @default(now())
+
+  questions      Question[]
+  timelineEntries TimelineEntry[]
+}
+
+model Question {
+  id             String  @id @default(uuid())
+  sessionId      String
+  text           String
+  expectedPoints String
+  type           String  @default("main")
+  parentId       String?
+  orderIndex     Int     @default(0)
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model TimelineEntry {
+  id          String  @id @default(uuid())
+  sessionId   String
+  questionId  String
+  type        String
+  text        String
+  startTime   Float
+  endTime     Float?
+  segmentPath String?
+  transcript  String?
+  analysis    String?
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
