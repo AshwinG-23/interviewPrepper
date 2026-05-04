@@ -7,9 +7,15 @@ export async function POST(req: NextRequest) {
   const { sessionId } = await req.json();
   if (!sessionId) return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
 
+  const session = await prisma.session.findUnique({ where: { id: sessionId } });
   const entries = await prisma.timelineEntry.findMany({
     where: { sessionId, segmentPath: { not: null } },
+    orderBy: { startTime: "asc" },
   });
+
+  const context = session
+    ? `This is a ${session.role} technical interview${session.company ? ` for ${session.company}` : ""}.`
+    : "This is a technical interview.";
 
   const results: { entryId: string; transcript: string }[] = [];
 
@@ -21,18 +27,25 @@ export async function POST(req: NextRequest) {
 
     const result = await ai.models.generateContent({
       model: AUDIO_MODEL,
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { inlineData: { mimeType: "audio/webm", data: base64Audio } },
-            { text: "Transcribe this audio recording accurately. Return only the spoken text, no timestamps or labels." },
-          ],
-        },
-      ],
+      contents: [{
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "audio/webm", data: base64Audio } },
+          {
+            text: `${context} The question being answered is: "${entry.text}"
+
+Transcribe the candidate's spoken answer accurately and completely.
+- Preserve the natural flow of speech including hesitations if they affect meaning
+- Fix obvious verbal filler ("um", "uh") only if they add noise — keep meaningful pauses
+- Do not summarise or interpret — transcribe exactly what was said
+- If the audio is silent or inaudible, return: "[No response recorded]"
+- Return only the transcription, nothing else`,
+          },
+        ],
+      }],
     });
 
-    const transcript = result.text?.trim() ?? "";
+    const transcript = result.text?.trim() ?? "[No response recorded]";
 
     await prisma.timelineEntry.update({
       where: { id: entry.id },
