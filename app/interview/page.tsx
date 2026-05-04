@@ -37,6 +37,15 @@ function InterviewScreen() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const liveVideoRef = useRef<HTMLVideoElement>(null);
+  const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
+
+  // Set srcObject after the video element mounts (phase change triggers render first)
+  useEffect(() => {
+    if (liveVideoRef.current && liveStream) {
+      liveVideoRef.current.srcObject = liveStream;
+      liveVideoRef.current.play().catch(() => {});
+    }
+  }, [liveStream]);
 
   useEffect(() => {
     fetch(`/api/session?id=${sessionId}`)
@@ -59,10 +68,7 @@ function InterviewScreen() {
   async function startRecording() {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     streamRef.current = stream;
-
-    if (liveVideoRef.current) {
-      liveVideoRef.current.srcObject = stream;
-    }
+    setLiveStream(stream);
 
     const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
       ? "video/webm;codecs=vp9,opus"
