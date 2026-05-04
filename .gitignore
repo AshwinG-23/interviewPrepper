@@ -27,6 +27,11 @@ storage/
 # TypeScript
 *.tsbuildinfo
 
+# Setup scripts (shared manually, not via git)
+setup-mac.sh
+setup-windows.ps1
+setup-linux.sh
+
 # Misc
 .DS_Store
 Thumbs.db
