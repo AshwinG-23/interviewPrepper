@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { mkdir } from "fs/promises";
 import path from "path";
 import ffmpeg from "fluent-ffmpeg";
+import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
+
+ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 export async function POST(req: NextRequest) {
   const { sessionId } = await req.json();
