@@ -29,22 +29,32 @@ npm run dev
 ```
 
 ### macOS
-```bash
-# 1. Install FFmpeg
-brew install ffmpeg
+No Xcode, Homebrew, or system FFmpeg needed. FFmpeg is bundled inside npm.
 
-# 2. Install Node dependencies
+```bash
+# 1. Install Node.js via nvm (no admin rights needed)
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.nvm/nvm.sh
+nvm install 20
+nvm use 20
+
+# 2. Install Google Cloud CLI
+curl -fsSL https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-darwin-arm.tar.gz -o /tmp/gcloud.tar.gz
+# Intel Mac: replace "darwin-arm" with "darwin-x86_64" in the URL above
+tar -xzf /tmp/gcloud.tar.gz -C ~
+~/google-cloud-sdk/install.sh --quiet --usage-reporting=false
+source ~/google-cloud-sdk/path.bash.inc
+
+# 3. Authenticate with Google Cloud
+gcloud auth application-default login --project=YOUR_PROJECT_ID
+
+# 4. Install Node dependencies (FFmpeg downloads automatically here)
 npm install
 
-# 3. Set up the database
-npx prisma db push
-
-# 4. Configure environment
+# 5. Set up environment and database
 cp .env.example .env
 # Edit .env with your Google Cloud project details
-
-# 5. Authenticate with Google Cloud
-gcloud auth application-default login
+npx prisma db push
 
 # 6. Start the app
 npm run dev
@@ -80,8 +90,8 @@ Open **http://localhost:3000** in your browser.
 
 | Tool | Version | Notes |
 |------|---------|-------|
-| Node.js | 20+ | |
-| FFmpeg | Any recent | For video/audio slicing |
+| Node.js | 20+ | Use nvm on macOS — no Xcode needed |
+| FFmpeg | — | Bundled automatically via `npm install` |
 | gcloud CLI | Any | For Vertex AI auth |
 | Google Cloud project | — | With Vertex AI API enabled |
 
